@@ -23,10 +23,8 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.Date;
-import java.util.List;
-import java.util.Random;
+import java.util.TimeZone;
 
 @SpringBootTest
 @Testcontainers
@@ -34,13 +32,13 @@ import java.util.Random;
 class FormServiceApplicationTests {
 
 	DateFormat dateFormat;
-	public void FormServiceApplication(){
-		 // i know it's a disaster XD
-		 this.dateFormat = new SimpleDateFormat("EE MMM d y H:m:s ZZZ");
+	public FormServiceApplicationTests(){
+		this.dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX");
+		this.dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 	}
 
 	@Container
-	static PostgreSQLContainer postgreSQLContainer = new PostgreSQLContainer("postgres:14.3");
+	static PostgreSQLContainer<?> postgreSQLContainer = new PostgreSQLContainer<>("postgres:14.3");
 
 	@Autowired
 	private ObjectMapper objectMapper;
@@ -59,27 +57,32 @@ class FormServiceApplicationTests {
 	}
 
 	@Test
-	void shouldCreateForm() throws Exception {
+	void createForm_WithValidFormContent_ReturnsSuccess() throws Exception {
 	 CreateFormDTO createFormDTO = getFormRequest();
 	 String createFormRequestContent = objectMapper.writeValueAsString(createFormDTO);
-
+		long formsAtTheMoment =  formRepository.findAll().stream().count();
 		// mock a servlet application(MOCK MVC) and make the endpoint calls
 		mockMvc.perform(MockMvcRequestBuilders
 				.post("/api/form")
 				.contentType(MediaType.APPLICATION_JSON)
 				.content(createFormRequestContent))
 				.andExpect(MockMvcResultMatchers.status().isCreated());
-        Assertions.assertEquals(1, formRepository.findAll().size());
+        Assertions.assertEquals(formsAtTheMoment + 1, formRepository.findAll().size());
 		formRepository.deleteAll();
 	}
 
 	@Test
-	void shouldListForms() throws Exception {
-		CreateFormDTO createFormDTO = getFormRequest();
-		String createFormRequest = objectMapper.writeValueAsString(createFormDTO);
+	void createForm_WithInValidFormContent_ReturnsError() throws Exception {
+		mockMvc.perform(MockMvcRequestBuilders
+						.post("/api/form")
+						.contentType(MediaType.APPLICATION_JSON)
+						.content(""))
+				.andExpect(MockMvcResultMatchers.status().isBadRequest());
+	}
+
+	@Test
+	void getForms_WithNoParams_ReturnsListOfForms() throws Exception {
 		int NUMBER_OF_FORMS_TO_CREATE = 10;
-
-
 		for (int i = 0; i< NUMBER_OF_FORMS_TO_CREATE; i++){
 			Form form = Form.builder()
 					.name("FormName")
@@ -98,6 +101,52 @@ class FormServiceApplicationTests {
 		formRepository.deleteAll();
 	}
 
+	@Test
+	void getForm_WithWrongFormId_ReturnsNotFound() throws Exception {
+		long FORM_ID = 99999999;
+		mockMvc.perform(MockMvcRequestBuilders
+						.get("/api/form/", FORM_ID)
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isNotFound());
+	}
+
+	@Test
+	void getForm_WithInvalidFormId_ReturnsNotFound() throws Exception {
+		var FORM_ID = "1000InvalidFormId";
+		mockMvc.perform(MockMvcRequestBuilders
+						.get("/api/form/" + FORM_ID)
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isBadRequest());
+	}
+
+	@Test
+	void getForm_WithValidId_ReturnsForm() throws Exception {
+		String FORM_NAME = "FormName";
+		String FORM_DESCRIPTION = "FromDescription";
+
+		// TODO: add tests for: startDate < endDate
+		Date FORM_DATE = new Date();
+		Form form = Form.builder()
+				.name(FORM_NAME)
+				.description(FORM_DESCRIPTION)
+				.startDate(FORM_DATE)
+				.endDate(FORM_DATE)
+				.build();
+		Form savedForm = formRepository.save(form);
+
+		String expectedDate = this.dateFormat.format(FORM_DATE).replace("Z", "+00:00");
+		mockMvc.perform(MockMvcRequestBuilders
+						.get("/api/form/" + savedForm.getId())
+						.contentType(MediaType.APPLICATION_JSON))
+				.andExpect(MockMvcResultMatchers.status().isOk())
+				.andExpect(MockMvcResultMatchers.jsonPath("$.id").value(savedForm.getId()))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.name").value(FORM_NAME))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.description").value(FORM_DESCRIPTION))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.startDate").value(expectedDate))
+				.andExpect(MockMvcResultMatchers.jsonPath("$.endDate").value(expectedDate));
+		formRepository.deleteAll();
+	}
+
 	private CreateFormDTO getFormRequest() {
 		return CreateFormDTO.builder()
 				.name("First Test Form")
@@ -110,6 +159,4 @@ class FormServiceApplicationTests {
 	private Date convertLocalDateToDate(LocalDate localDate){
 		return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
 	}
-
-
 }
