@@ -26,4 +26,10 @@ public class FormController {
         return formService.getAllForms();
     }
 
+    @GetMapping("/{id}")
+    @ResponseStatus(HttpStatus.OK)
+    public FormResponseDTO getForm(@PathVariable Long id){
+        return formService.getForm(id);
+    }
+
 }

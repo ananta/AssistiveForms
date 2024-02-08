@@ -2,6 +2,7 @@ package com.anntz.formservice.service;
 
 import com.anntz.formservice.dto.CreateFormDTO;
 import com.anntz.formservice.dto.FormResponseDTO;
+import com.anntz.formservice.exception.FormNotFoundException;
 import com.anntz.formservice.model.Form;
 import com.anntz.formservice.repository.FormRepository;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,11 @@ public class FormService {
         return forms.stream().map(this::mapToFormResponse).toList();
     }
 
+    public FormResponseDTO getForm(Long id){
+        Form form = formRepository.findById(id).orElseThrow(() -> new FormNotFoundException(String.format("Form with id: %s not found", id)));
+        return mapToFormResponse(form);
+    }
+
     private FormResponseDTO mapToFormResponse(Form form) {
         return FormResponseDTO.builder()
                 .id(form.getId().toString())
@@ -40,5 +46,4 @@ public class FormService {
                 .endDate(form.getEndDate())
                 .build();
     }
-
 }
