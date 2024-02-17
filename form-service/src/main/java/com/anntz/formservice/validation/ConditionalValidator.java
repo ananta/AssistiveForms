@@ -1,6 +1,5 @@
 package com.anntz.formservice.validation;
 
-import com.anntz.formservice.enums.FormItemEntryType;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +16,7 @@ public class ConditionalValidator implements ConstraintValidator<ConditionalVali
     private String selected;
     private String[] required;
     private String message;
-    private FormItemEntryType[] values;
+    private String[] values;
 
     @Override
     public void initialize(ConditionalValidation requiredIfChecked) {

@@ -1,8 +1,9 @@
 package com.anntz.formservice.controller;
 
-import com.anntz.formservice.dto.CreateFormDTO;
-import com.anntz.formservice.dto.FormResponseDTO;
-import com.anntz.formservice.service.FormService;
+import com.anntz.formservice.dto.FormItemDTO;
+import com.anntz.formservice.model.FormItem;
+import com.anntz.formservice.service.FormItemService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
@@ -10,26 +11,35 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/form")
+@RequestMapping("/api/form/{formId}/formItems")
 @RequiredArgsConstructor
-public class FormController {
-    private final FormService formService;
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public void createForm(@RequestBody CreateFormDTO createFormDto){
-        formService.createForm(createFormDto);
+public class FormItemController {
+    private final FormItemService formItemService;
+
+    @GetMapping()
+    @ResponseStatus(HttpStatus.OK)
+    public List<FormItemDTO> getFormItems(@PathVariable("formId") Long formId){
+        return formItemService.getFormItems(formId);
     }
 
-    @GetMapping
-    @ResponseStatus(HttpStatus.OK)
-    public List<FormResponseDTO> getAllForms(){
-        return formService.getAllForms();
-    }
 
     @GetMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    public FormResponseDTO getForm(@PathVariable Long id){
-        return formService.getForm(id);
+    public FormItemDTO getFormItem(@PathVariable("formId") Long formItemId, @PathVariable Long id){
+        return formItemService.getFormItem(formItemId, id);
+    }
+
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
+    public FormItem createFormItem(@PathVariable("formId") Long formId, @Valid @RequestBody FormItemDTO formItemDto){
+        return formItemService.createFormItem(formId, formItemDto);
+    }
+
+
+    @DeleteMapping
+    @ResponseStatus(HttpStatus.OK)
+   public void removeFormItem(@PathVariable("formId") Long formId){
+        formItemService.removeFormItem(formId);
     }
 
 }

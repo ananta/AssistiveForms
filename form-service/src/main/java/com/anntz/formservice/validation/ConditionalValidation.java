@@ -1,12 +1,11 @@
 package com.anntz.formservice.validation;
 
-import com.anntz.formservice.enums.FormItemEntryType;
 import jakarta.validation.Constraint;
 import jakarta.validation.Payload;
 
 import java.lang.annotation.*;
 
-@Repeatable(Conditionals.class)
+@Repeatable(ConditionalValidations.class)
 @Target({ElementType.TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Constraint(validatedBy = {ConditionalValidator.class})
@@ -18,5 +17,5 @@ public @interface ConditionalValidation {
 
     String selected();
     String[] required();
-    FormItemEntryType[] values();
+    String[] values();
 }
