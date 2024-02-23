@@ -23,10 +23,10 @@ public abstract class FormItem {
     private Long id;
 
     @Column(name = "previousItem")
-    private Long previousFormItemId;
+    private Long previousItem;
 
     @Column(name = "nextItem")
-    private Long nextFormItemId;
+    private Long nextItem;
 
     @Column(name = "title")
     private String title;
