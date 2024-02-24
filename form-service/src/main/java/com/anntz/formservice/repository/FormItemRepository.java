@@ -11,4 +11,6 @@ public interface FormItemRepository extends JpaRepository<FormItem, Long> {
 
     @Transactional
     void deleteByFormId(long tutorialId);
+
+    FormItem findTopByFormIdAndNextItemIsNull(Long formId);
 }
