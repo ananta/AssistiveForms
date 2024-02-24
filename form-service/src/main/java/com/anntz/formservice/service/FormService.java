@@ -17,14 +17,15 @@ import java.util.List;
 public class FormService {
     private final FormRepository formRepository;
 
-    public void createForm(CreateFormDTO createFormDto){
+    public Form createForm(CreateFormDTO createFormDto){
         Form form  = Form.builder().name(createFormDto.getName())
                 .description(createFormDto.getDescription())
                 .startDate(createFormDto.getStartDate())
                 .endDate(createFormDto.getEndDate())
                 .build();
-        formRepository.save(form);
+        Form newForm = formRepository.save(form);
         log.info("From {} created!", form.getId());
+        return newForm;
     }
 
     public List<FormResponseDTO> getAllForms(){

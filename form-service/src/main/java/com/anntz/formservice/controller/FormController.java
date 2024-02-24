@@ -2,6 +2,7 @@ package com.anntz.formservice.controller;
 
 import com.anntz.formservice.dto.CreateFormDTO;
 import com.anntz.formservice.dto.FormResponseDTO;
+import com.anntz.formservice.model.Form;
 import com.anntz.formservice.service.FormService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,8 +17,8 @@ public class FormController {
     private final FormService formService;
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public void createForm(@RequestBody CreateFormDTO createFormDto){
-        formService.createForm(createFormDto);
+    public Form createForm(@RequestBody CreateFormDTO createFormDto){
+        return formService.createForm(createFormDto);
     }
 
     @GetMapping
